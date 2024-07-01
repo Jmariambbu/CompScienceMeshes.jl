@@ -2,7 +2,7 @@ using CompScienceMeshes
 using StaticArrays
 using Plotly
 
-# Code icosphere from vedranaa
+
 
 """
 Returns a geodesic icosahedron with subdivision frequency nu. Frequency
@@ -29,7 +29,7 @@ function icosphere(nu = 1, r = 1, nr_verts = nothing)
             vertices[i] = r.*vertices[i]./sqrt.(sum(x->x.^2, vertices[i]))
         end
     end
-    #@show vertices, faces
+    
     return Mesh(vertices, faces)
 end
 
@@ -191,8 +191,7 @@ end
 
 
 ico = icosphere(5)
-#@show length(ico.vertices)
-#@show length(ico.faces)
+
 ##
 plot(wireframe(ico))
 
