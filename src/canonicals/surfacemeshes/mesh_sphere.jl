@@ -69,3 +69,5 @@ function delaunay_triangulation(points)
     triangulation = delaunay(points)
     return triangulation  
 end
+
+plot(wireframe(UniformSphereMesher(1.0, 0.10)))
