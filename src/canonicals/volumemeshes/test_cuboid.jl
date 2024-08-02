@@ -1,12 +1,11 @@
 using Plotly
 using CompScienceMeshes
-using Test
 using BenchmarkTools
 ##
 #Example usage
-@time tt = tetmesh_cuboid(2, 2, 2, 0.5)
+@time tt = tetmesh_cuboid(2.0, 2.0, 2.0, 0.5)
 @benchmark tt
-@time t = tetmeshcuboid(2, 2, 2, 0.5)
+@time t = tetmeshcuboid(2.0, 2.0, 2.0, 0.5)
 @benchmark t
 
 ##
@@ -17,5 +16,3 @@ length(t.faces)
 
 ##
 
-plot(wireframe(tt))
-plot(wireframe(t))

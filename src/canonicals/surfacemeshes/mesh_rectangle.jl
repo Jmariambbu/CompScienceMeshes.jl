@@ -23,7 +23,6 @@ function mesh_rectangle(a::F, b::F, h::F) where F
     
     #structured mesh:  isapprox(a%h, F(0)) && isapprox(b%h, F(0))
         n = Int(round(a/h))  # number of elements along a
-       
         m = Int(round(b/h))  # number of elements along b
         
         nodes = zeros(SVector{3, F}, (m + 1)*(n + 1))
@@ -54,7 +53,7 @@ function mesh_rectangle(a::F, b::F, h::F) where F
         end
         # for ix = n
         for iy in range(0, m)
-            nodes[n*(m + 1) + iy + 1] = SVector(n*h, (iy*h), Float64(0))
+            nodes[n*(m + 1) + iy + 1] = SVector(n*h, (iy*h), F(0))
            
         end
         
