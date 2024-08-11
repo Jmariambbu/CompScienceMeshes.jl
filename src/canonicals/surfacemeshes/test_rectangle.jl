@@ -6,10 +6,10 @@ rect = mesh_rectangle(1.0, 1.0, 0.1)
 
 @test length(refrect.vertices) == length(rect.vertices)
 
-
+plot(wireframe(refrect))
 ## Case 1
-
-@time refrect = meshrectangle(1.0, 1.0, 0.1);
+using BenchmarkTools
+@btime refrect = meshrectangle(1.0, 1.0, 0.1);
 
 @time rect = mesh_rectangle(1.0, 1.0, 0.1);
 
