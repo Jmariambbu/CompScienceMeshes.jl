@@ -3,10 +3,10 @@ using Delaunay
 using CompScienceMeshes
 
 # Function to generate a uniform spherical mesh
-function mesh_sphere(radius::F, len::F; delaunay =:(2D)) where F
-    if delaunay == :(3D)
+function mesh_sphere(radius::F, len::F; delaunay =:(2D)) where F 
+    if delaunay ==:(3D)
         verts, faces = unitCenteredSphere(len/radius)
-    elseif delaunay == :(2D)
+    elseif delaunay ==:(2D)
         verts, faces = unitCenteredSphere2(len/radius)
     end
 
@@ -78,7 +78,9 @@ function unitCenteredSphere(dist::F) where F
     #to remove the fourth vertex/dummy point from all faces
     for i in 1:size(tris, 1)
         id = findall(x -> x == V - upperpts, tris[i, :])
-        append!(temp, [deleteat!(tris[i, :], id[1])])
+        if id != []
+            append!(temp, [deleteat!(tris[i, :], id[1])])
+        end
     end
     for i in 1:length(temp)
         append!(temp, [vertreindex[temp[i]]])
@@ -135,14 +137,16 @@ function unitCenteredSphere2(dist::F) where F
             cos(t[i])
             ]
         if i <= upperpts
-            verts[length(points) + i] = 
-            [verts[i][1], verts[i][2], -verts[i][3]]
+            verts[length(points) + i] = [
+                verts[i][1], verts[i][2], -verts[i][3]
+                ]
         end
     end
     #to find the vertices on the bottom hemisphere
     vertreindex = collect(1:V)
-    vertreindex[1:upperpts] = V + 1 
-        .- reverse(vertreindex[1:upperpts])
+    vertreindex[1:upperpts] = V + 1 .- reverse(
+        vertreindex[1:upperpts]
+        )
     tris = vcat(tris, vertreindex[tris])
     #faces
     faces = zeros(SVector{3, Int}, size(tris, 1))
@@ -158,8 +162,7 @@ function leonorm(inmat)
     #a column vector of summed squares of (x,y)
     for i in 1:length(inmat)
         #x^2 + y^2 along each row
-        outmat[i] = inmat[i][1]*conj(inmat[i][1]) 
-                  + inmat[i][2]*conj(inmat[i][2])
+        outmat[i] = inmat[i][1]*conj(inmat[i][1]) + inmat[i][2]*conj(inmat[i][2])
     end
     return sqrt.(outmat)
 end

@@ -1,6 +1,5 @@
 using CompScienceMeshes
 using StaticArrays
-using Plotly
 
 function tetmesh_cuboid(a::F, b::F, c::F, h::F) where F
     n = Int(round(a/h)) #number of elements along x

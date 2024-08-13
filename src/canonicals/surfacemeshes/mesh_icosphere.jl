@@ -1,6 +1,5 @@
 using CompScienceMeshes
 using StaticArrays
-using Plotly
 
 """
 Returns a geodesic icosahedron with subdivision frequency nu. Frequency
