@@ -1,5 +1,4 @@
 using Plots
-using PythonPlot
 ##
 #rectangle
 rec = mesh_rectangle(1.0, 1.0, 0.2)
@@ -46,7 +45,6 @@ function plt2(j)
 end
 
 Plots.plot()
-pythonplot()
 #bounding box
 function rectangle()
     x = [0, 1, 1, 0, 0]
@@ -90,7 +88,7 @@ function plt2(j)
         append!(x2, NaN)
         append!(y2, NaN)
         append!(z2, NaN)
-        Plots.plot3d!(x2, y2, z2, color =:red3)
+        Plots.plot3d!(x2, y2, z2, color =:red3, xlim = [0, 1], ylim = [0, 1], zlim = [0, 1])
 end
 Plots.plot3d()
 #bounding box
@@ -101,21 +99,19 @@ function cuboid()
     return x, y, z
 end
 Plots.plot3d(cuboid(), color =:black)
-pythonplot()
 cam = [(45, 45), (45, 10), (45, 10), (75, 45), (160, 10), (-75, 10)]
 anim = @animate for i = 0:(l - 1)
     plt2(i + 1)
     if (i%8) == 0
         plot3d!(camera = cam[Int(i/8 + 1)])
     end
-    Plots.plot3d!(legend = false, grid = true, axis = [])
+    Plots.plot3d!(legend = false, grid = true, tickslabels = false, axis = false, ticks = false)
     title!("Meshing of a cuboid")
 end
 gif(anim, "animation_meshcuboid.gif", fps = 4)
 ##
 #animation 2
 #mesh cuboid
-pythonplot()
 ##
 cub = mesh_cuboid(1.0, 1.0, 1.0, 0.1)
 M = Matrix{Float64}(undef, 3, 3)
@@ -141,13 +137,18 @@ function pltcub()
     return (x2, y2, z2)
 end
 p = plot3d!(pltcub())
+#bounding box
+function cuboid()
+    x = [0, 1, 1, 0, 0, 0, 1, 1, 0, 0, NaN, 0, 0, NaN, 1, 1, NaN, 1, 1, NaN]
+    y = [0, 0, 1, 1, 0, 0, 0, 1, 1, 0, NaN, 1, 1, NaN, 1, 1, NaN, 0, 0, NaN]
+    z = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, NaN, 0, 1, NaN, 0, 1, NaN, 0, 1, NaN]
+    return x, y, z
+end
+Plots.plot3d(cuboid(), color =:black, legend = false, axis = ([], false), ticks = false, grid = :none, border =:nothing, foreground_color = :white)
 anim = Animation()
 for i in range(0, stop = 90, step = 2)
     u = plot3d!(p, camera = (i, i))
-    plot3d!(xlims = [-0.05, 1.05], ylims = [-0.05, 1.05], zlim = [-0.05, 1.05], legend = false)
-    xlabel!("x")
-    ylabel!("y")
-    zlabel!("z")
+    plot3d!(axis = false, grid = false, legend = false, showaxis = false, framestyle =:none)
     title!("Meshing of a cuboid")
     frame(anim, u)
 end 
@@ -176,8 +177,10 @@ function plt2(j, colour)
         append!(x2, NaN)
         append!(y2, NaN)
         append!(z2, NaN)
-        Plots.plot3d!(x2, y2, z2, color = colour)
+        Plots.plot3d!(x2, y2, z2, color = colour, xlim = [-1, 1],
+        ylim = [-1, 1], zlim = [-1, 1])
 end
+#animation
 anim = @animate for i = 0:(l - 1)
     if i < l/2
         plt2(i + 1, "blue")
@@ -186,10 +189,7 @@ anim = @animate for i = 0:(l - 1)
         plt2(i + 1, "red")
         plot3d!(camera = (75, -75))
     end
-    Plots.plot3d!(xlims = [-1.05, 1.05], ylims = [-1.05, 1.05], zlim = [-1.05, 1.05], legend = false)
-    xlabel!("x")
-    ylabel!("y")
-    zlabel!("z")
+    Plots.plot3d!(axis = false, grid = false, legend = false, ticks = false, showaxis = false, foreground_color_border = :white)
     title!("Meshing of a sphere")
 end
 gif(anim, "animation_meshsphere.gif", fps = 4)
@@ -197,7 +197,6 @@ gif(anim, "animation_meshsphere.gif", fps = 4)
 
 
 #icosphere
-pythonplot()
 Plots.plot3d()
 M = Matrix{Float64}(undef, 3, 3)
 function plt(i)
@@ -227,10 +226,7 @@ for i = 1:5
     plot3d!()
     p = plot3d(plt(i), color =:black)
     Plots.plot3d!(camera = (15, 15))
-    Plots.plot3d!(xlims = [-1.05, 1.05], ylims = [-1.05, 1.05], zlim = [-1.05, 1.05], legend = false)
-    xlabel!("x")
-    ylabel!("y")
-    zlabel!("z")
+    Plots.plot3d!(axis = false, grid = false, legend = false, showaxis = false)
     title!("Meshing of an icosphere")
     frame(anim, p)
 end 
@@ -242,21 +238,17 @@ for (j, i) in enumerate([1, 2, 4])
     palette = [:red, :green, :blue]
     p = plot3d!(plt(i), color = palette[j])
     Plots.plot3d!(camera = (90, 90))
-    Plots.plot3d!(xlims = [-1.0, 1.0], ylims = [-1.0, 1.0], zlim = [-1.05, 1.05], legend = false)
-    xlabel!("x")
-    ylabel!("y")
-    zlabel!("z")
+    Plots.plot3d!(axis = false, grid = false, legend = false)
     title!("Meshing of an icosphere")
     frame(anim2, p)
 end 
-gif(anim2, "animation_meshicosphere2.gif", fps = 0.25) 
+gif(anim2, "animation_meshicosphere2.gif", fps = 0.5) 
 
 
 
 
 ##
 #tetrahedron
-pythonplot()
 tt = tetmesh_cuboid(1.0, 1.0, 1.0, 1.0)
 M = Matrix{Float64}(undef, 4, 3)
 l = length(tt.faces)
@@ -311,17 +303,13 @@ anim = @animate for i = 1:l
     verts = plt2(i)
     j = Int(ceil(i/8))
     plot3d!(verts, camera = cam[j], palette =[:purple, :red, :lightgreen, :teal, :darkblue, :yellow, :brown, :darkgreen])
-    Plots.plot3d!(xlims = [-0.05, 1.05], ylims = [-0.05, 1.05], zlim = [-0.05, 1.05], legend = false)
-    xlabel!("x")
-    ylabel!("y")
-    zlabel!("z")
+    Plots.plot3d!(axis = false, grid = false, legend = false)
     title!("Volumetric Meshing of a cuboid")
 end
 gif(anim, "animation_tetmeshcuboid.gif", fps = 0.5)
 
 
 ##
-pythonplot()
 tt = tetmesh_cuboid(1.0, 1.0, 1.0, 0.5)
 plot3d()
 M = Matrix{Float64}(undef, 4, 3)
@@ -369,10 +357,7 @@ anim = Animation()
 for i in range(0, stop = 90, step = 2)  
     verts = plt2()  
     p = plot3d!(verts, camera = (i, i), color =:black)
-    Plots.plot3d!(xlims = [-0.05, 1.05], ylims = [-0.05, 1.05], zlim = [-0.05, 1.05], legend = false)
-    xlabel!("x")
-    ylabel!("y")
-    zlabel!("z")
+    Plots.plot3d!(axis = false, grid = true, legend = false)
     title!("Volumetric Meshing of a cuboid")
     frame(anim, p)
 end
