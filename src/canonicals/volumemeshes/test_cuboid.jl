@@ -37,28 +37,3 @@ println("CompScience:")
 
 
 ##
-plot()
-h = [1.0, 0.8, 0.5, 0.3, 0.2, 0.1, 0.08, 0.05, 0.03, 0.02]
-t = 0
-yc = []
-yr = []
-for i in 1:length(h)
-    t = h[i]
-    append!(yc, @belapsed tetmeshcuboid(1.0, 1.0, 1.0, t))
-    append!(yr, @belapsed tetmesh_cuboid(1.0, 1.0, 1.0, t))
-end
-##
-
-yc
-yr
-p = plot(h, yc, label = "CompScienceMeshes", marker = true)
-plot!(h, yr, label = "Regular", marker = true)
-plot!(xscale=:log10, yscale =:log10, minorgrid =true)
-xlabel!("edge length")
-ylabel!("time (s)")
-title!("Log-log plot for edge length and time elapsed")
-for i in 2:(length(h))
-    annotate!((h[i]), (yc[i]), text(yc[i], :top, 6))
-    annotate!((h[i]), (yr[i]), text(yr[i], :top, 6))
-end
-plot(p)

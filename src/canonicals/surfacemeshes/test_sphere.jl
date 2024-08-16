@@ -19,31 +19,5 @@ println("CompScienceMeshes")
 @time meshsphere(radius, 0.1);
 
 ##
-s1 = []
-s2 = []
-s3 = []
-
-for (i, len) in enumerate(l)
-
-    append!(s1, @elapsed mesh_sphere(radius, len, delaunay =:(2D)));
-    append!(s2, @elapsed mesh_sphere(radius, len, delaunay =:(3D)));
-    append!(s3, @elapsed meshsphere(radius, len));
-    
-end
-
-s1
-s2
-s3
-plot()
-p = plot(l, s3, label = "CompScienceMeshes", marker = true)
-plot!(l, s1, label = "Delaunay 2D", marker = true)
-plot!(l, s2, label = "Delaunay 3D", marker = true)
-
-plot!(xscale=:log10, yscale =:log10, minorgrid =true)
-xlabel!("edge length")
-ylabel!("time (s)")
-title!("Log-log plot for edge length and time elapsed")
-
-plot(p)
 
 ##

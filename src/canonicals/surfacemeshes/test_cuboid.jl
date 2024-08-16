@@ -50,30 +50,3 @@ end
 
 ##
 
-plot()
-h = []
-for i in 0:2
-    push!(h, 10.0^(-i), 0.5*10.0^(-i), 0.2*10.0^(-i))
-end
-t = 0
-yc = []
-yr = []
-for i in 1:length(h)
-    t = h[i]
-    append!(yc, @belapsed meshcuboid(1.0, 1.0, 1.0, t))
-    append!(yr, @belapsed mesh_cuboid(1.0, 1.0, 1.0, t))
-end
-
-yc
-yr
-p = plot(h, yc, label = "CompScienceMeshes", marker = true)
-plot!(h, yr, label = "Regular", marker = true)
-plot!(xscale=:log10, yscale =:log10, minorgrid =true, xlim = [10.0^(-3), 1.2])
-xlabel!("edge length")
-ylabel!("time (s)")
-title!("Log-log plot for edge length and time elapsed")
-for i in 2:length(h)
-    annotate!((h[i]), (yc[i]), text(yc[i], :top, 6))
-    annotate!((h[i]), (yr[i]), text(yr[i], :top, 6))
-end
-plot(p)
