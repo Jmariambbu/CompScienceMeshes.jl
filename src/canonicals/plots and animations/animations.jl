@@ -87,7 +87,7 @@ function plt2(j)
         append!(x2, NaN)
         append!(y2, NaN)
         append!(z2, NaN)
-        Plots.plot3d!(x2, y2, z2, color =:red3)
+        Plots.plot3d!(x2, y2, z2, color =:red3, xlim = [0, 1], ylim = [0, 1], zlim = [0, 1])
 end
 Plots.plot3d()
 #bounding box
@@ -167,8 +167,10 @@ function plt2(j, colour)
         append!(x2, NaN)
         append!(y2, NaN)
         append!(z2, NaN)
-        Plots.plot3d!(x2, y2, z2, color = colour)
+        Plots.plot3d!(x2, y2, z2, color = colour, xlim = [-1, 1],
+        ylim = [-1, 1], zlim = [-1, 1])
 end
+#animation
 anim = @animate for i = 0:(l - 1)
     if i < l/2
         plt2(i + 1, "blue")
