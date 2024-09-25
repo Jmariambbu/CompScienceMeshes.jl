@@ -1,4 +1,3 @@
-using Plots
 using CompScienceMeshes
 using BenchmarkTools
 ##
