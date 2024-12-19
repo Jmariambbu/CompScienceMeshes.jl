@@ -2,8 +2,17 @@ using StaticArrays
 using Delaunay
 using CompScienceMeshes
 
+
+function meshsphere(;radius, h, generator=:compsciencemeshes) 
+    if generator == :compsciencemeshes
+        meshsphere(radius, h)
+    elseif generator == :gmsh
+        gmshsphere(radius, h)
+    end
+end
+
 # Function to generate a uniform spherical mesh
-function mesh_sphere(radius::F, len::F; delaunay =:(2D)) where F 
+function meshsphere(radius::F, len::F; delaunay =:(2D)) where F
     if delaunay ==:(3D)
         verts, faces = unitCenteredSphere(len/radius)
     elseif delaunay ==:(2D)
@@ -182,4 +191,69 @@ end
 function delaunay_triangulation(points)
     triangulation = delaunay(points)
     return triangulation  
+end
+
+"""
+    gmshsphere(radius, delta)
+
+Create a mesh of a sphere of radius `radius` by parsing a .geo script
+    incorporating these parameters into the GMSH mesher.
+
+The target edge size is `delta`.
+"""
+function gmshsphere(radius, delta; tempname=tempname())
+    s = """
+lc = $delta;
+
+Point(1)={0,0,0,lc};
+Point(2)={$radius,0,0,lc};
+Point(3)={0,$radius,0,lc};
+Point(4)={-$radius,0,0,lc};
+Point(5)={0,-$radius,0,lc};
+Point(6)={0,0,$radius,lc};
+Point(7)={0,0,-$radius,lc};
+
+Circle(1)={2,1,3};
+Circle(2)={3,1,4};
+Circle(3)={4,1,5};
+Circle(4)={5,1,2};
+Circle(5)={6,1,3};
+Circle(6)={3,1,7};
+Circle(7)={7,1,5};
+Circle(8)={5,1,6};
+
+Line Loop(1)={-1,-6,-7,-4};
+Line Loop(2)={1,-5,-8,4};
+Line Loop(3)={-2,-3,7,6};
+Line Loop(4)={2,3,8,5};
+
+Ruled Surface(1)={1} In Sphere{1};
+Ruled Surface(2)={2} In Sphere{1};
+Ruled Surface(3)={3} In Sphere{1};
+Ruled Surface(4)={4} In Sphere{1};
+"""
+
+    fn = tempname
+    io = open(fn, "w")
+    try
+        print(io, s)
+    finally
+        close(io)
+    end
+    fno = tempname * ".msh"
+
+    gmsh.initialize()
+    gmsh.option.setNumber("Mesh.MshFileVersion",2)
+    gmsh.open(fn)
+    gmsh.model.mesh.generate(2)
+    gmsh.write(fno)
+    gmsh.finalize()
+
+    m = read_gmsh_mesh(fno)
+
+    rm(fno)
+    rm(fn)
+
+    return m
+
 end

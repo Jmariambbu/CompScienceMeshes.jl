@@ -453,3 +453,96 @@ function mesh_cuboid(a::F, b::F, c::F, h::F) where F
         end
     return Mesh(nodes, faces)
 end
+
+"""
+    gmshcuboid(width, height, length, delta)
+
+Creates a mesh for a cuboid of width (along the x-axis) `width`, height (along
+    the y-axis) `height` and length (along the z-axis) `length` by parsing a .geo script
+    incorporating these parameters into the GMSH mesher.
+
+The target edge size is `delta`.
+physical => in {"TopPlate", "BottomPlate", "SidePlates", "OpenBox"} extracts and
+returns only the specified part of the cuboid
+
+"""
+function gmshcuboid(width::T, height::T, length::T, delta::T;physical="ClosedBox", tempname=tempname()) where T
+    s =
+"""
+lc = $delta;
+
+Point(1)={0,0,0,lc};
+Point(2)={0,0,$length,lc};
+Point(3)={$width,0,$length,lc};
+Point(4)={$width,0,0,lc};
+Point(5)={0,$height,0,lc};
+Point(6)={0,$height,$length,lc};
+Point(7)={$width,$height,$length,lc};
+Point(8)={$width,$height,0,lc};
+
+Line(1)={1,2};
+Line(2)={2,3};
+Line(3)={3,4};
+Line(4)={4,1};
+Line(5)={5,6};
+Line(6)={6,7};
+Line(7)={7,8};
+Line(8)={8,5};
+Line(9)={1,5};
+Line(10)={2,6};
+Line(11)={3,7};
+Line(12)={4,8};
+
+Line Loop(1)={-1,-2,-3,-4};
+Line Loop(2)={1,-9,-5,10};
+Line Loop(3)={2,-10,-6,11};
+Line Loop(4)={3,-11,-7,12};
+Line Loop(5)={4,-12,-8,9};
+Line Loop(6)={5,6,7,8};
+
+Plane Surface(1)={1};
+Plane Surface(2)={2};
+Plane Surface(3)={3};
+Plane Surface(4)={4};
+Plane Surface(5)={5};
+Plane Surface(6)={6};
+
+//classify parts of geometry
+Physical Surface("TopPlate") = {3};
+Physical Surface("BottomPlate") = {5};
+Physical Surface("SidePlates") = {1,2,4,6};
+Physical Surface("OpenBox") = {1,2,4,5,6};
+Physical Surface("ClosedBox") = {1,2,3,4,5,6};
+
+Surface Loop(1)={1,2,3,4,5,6};
+Volume(1)={1};
+
+"""
+
+    fn = tempname
+    io = open(fn, "w")
+    try
+        print(io, s)
+    finally
+        close(io)
+    end
+
+    # feed the file to gmsh
+    fno = tempname * ".msh"
+
+    gmsh.initialize()
+    gmsh.option.setNumber("Mesh.MshFileVersion",2)
+    gmsh.open(fn)
+    gmsh.model.mesh.generate(2)
+    gmsh.write(fno)
+    gmsh.finalize()
+
+    # m = read_gmsh_mesh(fno)
+    m = read_gmsh_mesh(fno,physical=physical,T=T)
+
+    rm(fno)
+    rm(fn)
+
+    return m
+
+end
