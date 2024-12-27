@@ -1,5 +1,5 @@
 using Test
-
+using CompScienceMeshes
 #Calling functions
 ico1 = meshicosphere(1);
 ico2 = meshicosphere(2);

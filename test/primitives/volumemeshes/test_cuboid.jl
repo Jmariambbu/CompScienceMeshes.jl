@@ -1,4 +1,5 @@
 using Test
+using CompScienceMeshes
 
 tt = tetmeshcuboid(1.0, 1.0, 1.0, 0.5);
 t = tetmeshcuboid(1.0, 1.0, 1.0, 0.5, generator = :gmsh);

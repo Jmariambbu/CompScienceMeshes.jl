@@ -2,11 +2,11 @@ using StaticArrays
 using GmshTools
 
 """
-    meshrectangle(len::F, breadth::F, edge_length::F) where F
+    meshrectangle(len::F, breadth::F, edge_length::F, udim = 3) where F
 
 returns Mesh(vertices, faces)
 
-Function calls kwarg - udim or universal dimension -
+Function calls arg - udim or universal dimension -
     2 - returns a rectangle in a 2D space
     3 - is default, returns a rectangle with the 3D coordinate system at z = 0
 
@@ -44,7 +44,7 @@ of the rectangle, if true
 
 Also see gmsh function - gmshrectangle.
 """
-function meshrectangle(len::F, breadth::F, edge_length::F; udim = 3, 
+function meshrectangle(len::F, breadth::F, edge_length::F, udim = 3; 
     boundary_only = false, generator = :compsciencemeshes) where F
     if generator == :gmsh
         msh = gmshrectangle(len, breadth, edge_length)

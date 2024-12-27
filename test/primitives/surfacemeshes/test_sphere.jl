@@ -1,5 +1,5 @@
 using Test
-
+using CompScienceMeshes
 radius = 1.0;
 md2 = meshsphere(radius, 0.1, delaunay =:(2D));
 md3 = meshsphere(radius, 0.1, delaunay =:(3D));

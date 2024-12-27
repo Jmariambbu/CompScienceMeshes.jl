@@ -1,5 +1,5 @@
 using Test
-
+using CompScienceMeshes
 #Calling functions
 m_c = meshcuboid(1.0, 1.0, 1.0, 0.1);
 mc= meshcuboid(1.0, 1.0, 1.0, 0.1, generator = :gmsh);
