@@ -1,11 +1,16 @@
-using CompScienceMeshes
 using StaticArrays
-
-#code for meshing a cuboid regularly
+using GmshTools
 
 """
-    mesh_cuboid(a::F, b::F, c::F, h::F)
+    meshcuboid(length::F, breadth::F, width::F, edge length::F) where F
 
+returns Mesh(vertices, faces)
+
+Function returns a simplicial areal mesh of a cuboid. It takes kwarg - generator 
+:compsciencemeshes - is default, and gives a structured mesh of 
+    a cuboid, the dimensions of the cuboid are approximated by multiples 
+    of edge length -
+    
     Number of faces = 2*(2*m*n) + 2*(2*n*p) + 2*(2*m*p) -> front, back; top, bottom;
     left, right
     where m is the number of elements along y, n along x, p along z
@@ -50,6 +55,31 @@ using StaticArrays
                                  2       5       8
     front =>                     |       |       |
                                  1 ----- 4 ----- 7
+
+:gmsh - returns a areal mesh of a cuboid using gmsh and Closed Box only.
+
+For other physical configurations of the surface of the cube, see gmshcuboid function.
+"""
+function meshcuboid(len::F, breadth::F, width::F, edge_len::F; 
+    generator = :compsciencemeshes) where F
+    if generator == :gmsh
+        msh = gmshcuboid(len, breadth, width, edge_len)
+    elseif  generator == :compsciencemeshes
+        @info "Generating a structured mesh: The dimensions of the cuboid are 
+            approximated by multiples of edge length.
+            For exact dimensions/ unstructured grid, use kwarg - generator = :gmsh"
+        msh = mesh_cuboid(len, width, width, edge_len)
+    else
+        @error "generators are gmsh and compsciencemeshes only"
+    end
+    return msh
+end
+
+#code for meshing a cuboid regularly
+"""
+    mesh_cuboid(a::F, b::F, c::F, h::F)
+
+returns an areal structured mesh of a cuboid.
 
     """
 function mesh_cuboid(a::F, b::F, c::F, h::F) where F

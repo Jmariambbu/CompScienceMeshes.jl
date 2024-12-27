@@ -1,5 +1,38 @@
-using CompScienceMeshes
 using StaticArrays
+
+"""
+    tetmeshcuboid(length::F, breadth::F, width::F, edge length::F) where F
+
+returns Mesh(vertices, faces)
+
+Function returns a simplicial volumetric mesh of a cuboid. It takes kwarg - 
+generator 
+:compsciencemeshes - is default, and gives a structured tetrahedral mesh of 
+    a cuboid, the dimensions of the cuboid are approximated by multiples 
+    of edge length -
+
+    there are 24 tetrahedrons in each unit cube - 4 on each facet - 
+    and there are n*m*p unit cubes in each cuboid, where n, m, p are number of
+    segments along length, breadth, width respectively.
+    
+:gmsh - returns a tetrahedral mesh of a cuboid using gmsh. 
+
+Also see the gmsh function - tetgmshcuboid.
+"""
+function tetmeshcuboid(len::F, breadth::F, width::F, edge_len::F; 
+    generator = :compsciencemeshes) where F
+    if generator == :compsciencemeshes
+        @info "Generating a structured mesh: The dimensions of the cuboid are 
+            approximated by multiples of edge length.
+            For exact dimensions/ unstructured grid, use kwarg - generator = :gmsh"
+        msh = tetmesh_cuboid(len, breadth, width, edge_len)
+    elseif generator == :gmsh
+        msh = tetgmshcuboid(len, breadth, width, edge_len)
+    else
+        @error "generators are gmsh and compsciencemeshes only"
+    end
+    return msh
+end
 
 function tetmesh_cuboid(a::F, b::F, c::F, h::F) where F
     n = Int(round(a/h)) #number of elements along x
@@ -12,7 +45,7 @@ function tetmesh_cuboid(a::F, b::F, c::F, h::F) where F
         undef, 
         (m + 1)*(n + 1)*(p + 1) + 4*m*n*p + (m*n + n*p + m*p)
         )
-    #there are 24 tetrahedrons in each unit cube - 4 on each side - 
+    #there are 24 tetrahedrons in each unit cube - 4 on each facet - 
         #and there are m*n*p unit cubes in each cuboid
     faces = Vector{SVector{4, Int}}(undef, 24*m*n*p)
 
@@ -133,8 +166,13 @@ function tetmesh_cuboid(a::F, b::F, c::F, h::F) where F
     return Mesh(vertices, faces)
 end
 
+"""
+    tetgmshcuboid(width, height, length, delta)
 
-function tetgmshcuboid(width, height, length, delta)
+returns a mesh of tetrahedral mesh of a cuboid using gmsh. The name of the 
+.geo file can be specified with the kwarg - tempname.
+"""
+function tetgmshcuboid(width, height, length, delta; tempname = tempname())
     s =
 """
 lc = $delta;
@@ -182,7 +220,7 @@ Physical Volume(1) = {1};
 """
 
 
-    fn = tempname()
+    fn = tempname
     io = open(fn, "w")
     try
         print(io, s)
@@ -192,7 +230,7 @@ Physical Volume(1) = {1};
 
 
 
-    fno = tempname() * ".msh"
+    fno = tempname * ".msh"
 
     gmsh.initialize()
     gmsh.option.setNumber("Mesh.MshFileVersion",2)

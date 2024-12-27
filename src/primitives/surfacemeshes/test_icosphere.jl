@@ -1,26 +1,30 @@
-using BenchmarkTools
-using Printf
+using Test
 
-for i in 1:50:500
-    ico = icosphere(i)
-    println("\nNumber of vertices:\t", length(ico.vertices))
-    println("Number of faces:\t", length(ico.faces))
-    @printf("Time: %.15f", @elapsed icosphere(i))
-end
-println("Number of divisions:", 5)
-@benchmark icosphere(5)
-println("Number of divisions:", 80)
-@benchmark icosphere(80)
-##
+#Calling functions
+ico1 = meshicosphere(1);
+ico2 = meshicosphere(2);
+ico3 = meshicosphere(2, 2.0);
+ico4 = meshicosphere(2, 1.0, 30);
 
-ico = icosphere(1)
-    println("\nNumber of edge divisions:", 1)
-    println("Number of vertices:\t", length(ico.vertices))
-    println("Number of faces:\t", length(ico.faces))
+#Case: Less than or equal to the number of required vertices
+@test ico2.vertices == ico4.vertices
+@test ico2.faces == ico4.faces
 
-for i in 1:4
-    ico = icosphere(20*i)
-    println("Number of edge divisions:", 20*i)
-    println("Number of vertices:\t", length(ico.vertices))
-    println("Number of faces:\t", length(ico.faces))
-end 
+#Case: Scaling 
+@test length(ico2.vertices) == length(ico3.vertices)
+@test length(ico2.faces) == length(ico3.faces)
+@test ico2.vertices != ico3.vertices
+@test ico2.faces == ico3.faces
+
+#Case: The function has a return
+@test typeof(ico1) != Nothing
+@test typeof(ico2) != Nothing
+@test typeof(ico3) != Nothing
+@test typeof(ico4) != Nothing
+
+#Case: Comparison on the sizes of mesh
+@test length(ico1.vertices) < length(ico2.vertices)
+
+#Case: The mesh returns vertices and faces
+@test length(ico1.vertices) != 0
+@test length(ico1.faces) != 0

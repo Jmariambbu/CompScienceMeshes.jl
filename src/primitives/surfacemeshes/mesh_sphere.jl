@@ -1,22 +1,48 @@
 using StaticArrays
 using Delaunay
-using CompScienceMeshes
+using GmshTools
 
+"""
+    meshsphere(radius::F, h::F) where F
 
-function meshsphere(;radius, h, generator=:compsciencemeshes) 
+returns Mesh(vertices, faces)
+
+Function gives a simplicial areal mesh of a sphere of radius and edge length.
+Additionally, the function takes kwargs - generator, delaunay
+-generator
+:compsciencemeshes - is default
+    -delaunay --- only a kwarg argument for compsciencemeshes
+    :(2D) - is default, the triangulation is a 2D delaunay and is significantly faster
+    than its 3D counterpart for medium to large meshes. The triangulation is done for
+    x- and y- vertices, and the z- coordinate of the vertices are calculated from x, y 
+    using Stereographic projection.
+    :(3D) - calls the 3D Delaunay for triangulation, is significantly slower for 
+    medium to large meshes.
+:gmsh - returns a mesh using gmsh
+
+The delaunay kwarg is only an argument for compsciencemeshes. The generator kwarg 
+has precedence over delaunay.
+
+Also see function - gmshsphere.
+"""
+function meshsphere(radius::F, h::F; 
+    delaunay =:(2D), generator=:compsciencemeshes) where F
     if generator == :compsciencemeshes
-        meshsphere(radius, h)
+        msh = mesh_sphere(radius, h; delaunay)
     elseif generator == :gmsh
-        gmshsphere(radius, h)
+        msh = gmshsphere(radius, h)
+    else
+        @error "generators are gmsh and compsciencemeshes only"
     end
+    return msh
 end
 
 # Function to generate a uniform spherical mesh
-function meshsphere(radius::F, len::F; delaunay =:(2D)) where F
+function mesh_sphere(radius::F, len::F; delaunay =:(2D)) where F
     if delaunay ==:(3D)
-        verts, faces = unitCenteredSphere(len/radius)
+        verts, faces = unit_centered_sphere(len/radius)
     elseif delaunay ==:(2D)
-        verts, faces = unitCenteredSphere2(len/radius)
+        verts, faces = unit_centered_sphere2(len/radius)
     end
 
     verts .= radius.*verts
@@ -27,7 +53,7 @@ function meshsphere(radius::F, len::F; delaunay =:(2D)) where F
 end
 
 # Function to generate a unit sphere mesh using delaunay 3D function
-function unitCenteredSphere(dist::F) where F
+function unit_centered_sphere(dist::F) where F
     #steps down from the top to list vertices of the hemisphere
     thmax = F(π/2)
     points = []
@@ -104,7 +130,7 @@ end
 
 
 #Function to generate a unit sphere mesh using delaunay 2D function
-function unitCenteredSphere2(dist::F) where F
+function unit_centered_sphere2(dist::F) where F
     #steps down from the top to list vertices of the hemisphere
     thmax = F(π / 2)
     points = []

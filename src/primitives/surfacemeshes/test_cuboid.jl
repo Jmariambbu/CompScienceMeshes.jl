@@ -1,52 +1,40 @@
-using BEAST
-using CompScienceMeshes
 using Test
-using Printf
-using Plots
-using BenchmarkTools
 
-mesh = mesh_cuboid(1.0, 1.0, 1.0, 0.01)
+#Calling functions
+m_c = meshcuboid(1.0, 1.0, 1.0, 0.1);
+mc= meshcuboid(1.0, 1.0, 1.0, 0.1, generator = :gmsh);
+mcc = gmshcuboid(1.0, 1.0, 1.0, 0.1, physical = "OpenBox");
 
-nedges = length(BEAST.raviartthomas(mesh).pos) 
+#Case: The function has a return
+@test typeof(m_c) != Nothing
+@test typeof(mc) != Nothing
+@test typeof(mcc) != Nothing
 
-@test length(mesh.vertices) - nedges + length(mesh.faces) == 2
+#Case: The mesh returns vertices and faces
+@test length(m_c.vertices) != 0
+@test length(m_c.faces) != 0
+@test length(mc.vertices) != 0
+@test length(mc.faces) != 0
+@test length(mcc.vertices) != 0
+@test length(mcc.faces) != 0
 
-@time m_c = mesh_cuboid(1.0, 1.0, 1.0, 0.1);
-@time mc= meshcuboid(1.0, 1.0, 1.0, 0.1);
-
-##
-#Comparison for number of vertices and faces
-
-l = [0.1, 0.01, 0.001]
-
-for i in 1:length(l)
-    println("Edge length:", l[i])
-    println("Number of vertices:", length(mesh_cuboid(1.0, 1.0, 1.0, l[i]).vertices))
-    println("Number of faces:", length(mesh_cuboid(1.0, 1.0, 1.0, l[i]).faces))
+#Case: Euler's formula for polyhedron
+function calculate_edges(len, bdth, wid, h)
+    n1 = Int(round(bdth/h))
+    n2 = Int(round(len/h))
+    n3 = Int(round(wid/h))
+    n_e = (4 + 3*(n1 - 1) + 3*(n2 - 1) + 2*(n1 - 1)*(n2 - 1)) + 2*(
+            3*n3 + 2*(n3*(n1 - 1))) + 2*(
+            2*(n2 - 1)*n3 + n3) + (
+            (n2 - 1)*(n1 - 1)*2 + (n2 - 1) + (n1 - 1)
+            ) + 2*n2*n1 + 2*n3*n1 + 2*n2*n3
+    return n_e
 end
-##
-#Comparison for average time
-edge_len = [0.5, 0.1, 0.01]
-
-h = 0
-y1 = []
-y2 =[]
-for i in 1:length(edge_len)
-    h = edge_len[i]
-
-  append!(y1, @belapsed meshcuboid(1.0, 1.0, 1.0, h));
-  append!(y2, @belapsed mesh_cuboid(1.0, 1.0, 1.0, h));
+function euler(l, b, w, h)
+    n = calculate_edges(l, b, w, h)
+    v = length(meshcuboid(l, b, w, h).vertices)
+    f = length(meshcuboid(l, b, w, h).faces)
+    return v + f - n
 end
 
-#for i in 1:length(edge_len)
-    println("Edge length:\n", 0.005)
-    # Case
-    println("CompScienceMeshes:")
-    @time meshcuboid(1.0, 1.0, 1.0, 0.005)
-    println("Regular meshes:")
-    @time mesh_cuboid(1.0, 1.0, 1.0, 0.005)
-    
-#end
-
-##
-
+@test euler(1.0, 1.0, 1.0, 0.01) == 2

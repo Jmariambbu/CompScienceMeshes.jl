@@ -1,126 +1,132 @@
-using CompScienceMeshes
 using StaticArrays
+using GmshTools
 
 """
-    mesh_rectangle(a::Float64, b::Float64, h::Float64)
+    meshrectangle(len::F, breadth::F, edge_length::F) where F
 
-    The mesh function is pre-allocated with its vectors of nodes and faces. It is a 
-    structured mesh.
-Allocations for Nodes
+returns Mesh(vertices, faces)
+
+Function calls kwarg - udim or universal dimension -
+    2 - is default, and returns a rectangle in a 2D space
+    3 - returns a rectangle with the 3D coordinate system at z = 0
+
+Function also calls a kwarg - generator - 
+:compsciencemeshes - is default, is pre-allocated with its vectors 
+    of nodes and faces. It is a structured mesh. 
+
+    Nodes:
     (m+1) nodes along b
     (n+1) nodes along a
     = (m+1)*(n+1) total nodes
 
-Allocations for faces
+    Faces:
     m elements along b 
     n elements along a 
     = 2*m*n total faces -> 2 triangles in each rectangular face
 
     The faces along y-axis can be obtained by (2*element number) and 
-    (2*element number - 1), this is repeated for each element in x-axis
+    (2*element number - 1), this is repeated for each element in x-axis.
+
+    The odd faces are the triangles right-angled at bottom,
+      /|
+     /_|      or laterally-inverted
+
+     the even at top
+      _      
+     | /    
+     |/        or laterally-inverted
+
+:gmsh - returns an unstructured mesh using gmsh, which in turn using 
+Delaunay triangulation. 
+
+kwarg (not implemented yet): boundary_only - returns the mesh of the boundary 
+of the rectangle, if true
+
+Also see gmsh function - gmshrectangle.
 """
-function mesh_rectangle(a::F, b::F, h::F) where F
-    
+function meshrectangle(len::F, breadth::F, edge_length::F; udim = 2, 
+    boundary_only = false, generator = :compsciencemeshes) where F
+    if generator == :gmsh
+        msh = gmshrectangle(len, breadth, edge_length)
+    elseif generator == :compsciencemeshes
+        @info "Generating a structured mesh: The dimensions of the rectangle are 
+            approximated by multiples of edge length.
+            For exact dimensions/ unstructured grid, use kwarg - generator = :gmsh"
+        msh = mesh_rectangle(len, breadth, edge_length, udim)
+    else 
+        @error "generators are gmsh and compsciencemeshes only"
+    end
+
+    if boundary_only == true
+        @error "not implemented yet"
+    end
+    return msh
+end 
+
+"""
+    mesh_rectangle(a::Float64, b::Float64, h::Float64, udim)
+
+    The mesh function is pre-allocated with its vectors of nodes and faces. It is a 
+    structured mesh.
+"""
+function mesh_rectangle(a::F, b::F, h::F, udim) where F
+    @assert udim == 2 || udim == 3 "Universal dimension can only be 2 or 3"
     #structured mesh:  isapprox(a%h, F(0)) && isapprox(b%h, F(0))
-        n = Int(round(a/h))  # number of elements along a
-        m = Int(round(b/h))  # number of elements along b
-        
-        nodes = zeros(SVector{3, F}, (m + 1)*(n + 1))
-        faces = Vector{SVector{3, Int64}}(undef, 2*m*n)
-        
-        for ix in range(0, n - 1)
-            for iy in range(1, m)
+    n = Int(round(a/h))  # number of elements along a
+    m = Int(round(b/h))  # number of elements along b
+    
+    nodes = zeros(SVector{udim, F}, (m + 1)*(n + 1))
+    faces = Vector{SVector{3, Int64}}(undef, 2*m*n)
+    
+    for ix in range(0, n - 1)
+        for iy in range(1, m)
+            if udim == 3
                 node = SVector((ix)*h, (iy - 1)*h, F(0))
-                
-                nodes[(ix)*(m + 1) + iy] = node
-                face = SVector(
-                    (ix)*(m + 1) + (iy),
-                    (ix)*(m + 1) + (iy + 1),
-                    (ix + 1)*(m + 1) + (iy)
-                )
-                faces[(ix)*2*m + (2*iy - 1)] = face
-               
-                face = SVector(
-                    (ix)*(m + 1) + (iy + 1), 
-                    (ix + 1)*(m + 1) + (iy + 1), 
-                    (ix + 1)*(m + 1) + (iy)
-                    )
-                faces[(ix)*2*m + (2*iy)] = face
+            else
+                node = SVector((ix)*h, (iy - 1)*h)
             end
-            # for the mth element in y-direction
+            
+            nodes[(ix)*(m + 1) + iy] = node
+            face = SVector(
+                (ix)*(m + 1) + (iy),
+                (ix)*(m + 1) + (iy + 1),
+                (ix + 1)*(m + 1) + (iy)
+            )
+            faces[(ix)*2*m + (2*iy - 1)] = face
+            
+            face = SVector(
+                (ix)*(m + 1) + (iy + 1), 
+                (ix + 1)*(m + 1) + (iy + 1), 
+                (ix + 1)*(m + 1) + (iy)
+                )
+            faces[(ix)*2*m + (2*iy)] = face
+        end
+        # for the mth element in y-direction
+        if udim == 3
             nodes[(ix + 1)*(m + 1)] = SVector((ix)*h, m*h, F(0))
-           
+        else
+            nodes[(ix + 1)*(m + 1)] = SVector((ix)*h, m*h)
         end
-        # for ix = n
-        for iy in range(0, m)
+        
+    end
+    # for ix = n
+    for iy in range(0, m)
+        if udim == 3
             nodes[n*(m + 1) + iy + 1] = SVector(n*h, (iy*h), F(0))
-           
+        else 
+            nodes[n*(m + 1) + iy + 1] = SVector(n*h, (iy*h))
         end
+    end
         
     return Mesh(nodes, faces)
 end
-"""
-    meshrectangle(width, height, delta, udim)
-
-Create a mesh for a rectangle of width (along the x-axis) `width` and height (along
-    the y-axis) `height`.
-
-The target edge size is `delta` and the dimension of the
-    embedding universe is `udim` (>= 2).
-
-The mesh is oriented such that the normal is pointing down. This is subject to change.
-"""
-function meshrectangle(width::T, height::T, delta::T, udim=3; structured=true) where T
-  if !structured
-	  @assert udim==3 "Only 3D Unstructured mesh currently supported"
-	  return meshrectangle_unstructured(width, height, delta)
-  end
-
-  PT = SVector{udim,T}
-  CT = SVector{3,Int}
-
-    @assert 2 <= udim
-
-    nx = round(Int, ceil(width/delta));  nx = max(nx,1); dx = width/nx
-    ny = round(Int, ceil(height/delta)); ny = max(ny,1); dy = height/ny
-
-    xs = (0:nx) * dx
-    ys = (0:ny) * dy
-
-    vertices = zeros(PT, (nx+1)*(ny+1))
-    k = 1
-    for x in xs
-        for y in ys
-            p = zeros(T, udim)
-            p[1] = x
-            p[2] = y
-            vertices[k] = PT(p)
-            k += 1
-        end
-    end
-
-    faces = zeros(CT, 2*nx*ny)
-    k = 1
-    for i in 1 : nx
-        for j in 1 : ny
-            v11 = (i-1)*(ny+1) + j
-            v12 = i*(ny+1) + j
-            v21 = (i-1)*(ny+1) + (j+1)
-            v22 = i*(ny+1) + (j+1)
-            faces[k]   = CT(v11,v21,v12)
-            faces[k+1] = CT(v21,v22,v12)
-            k += 2
-        end
-    end
-
-    Mesh(vertices, faces)
-end
 
 """
-    meshrectangle_unstructured(width, height, delta)
-	Meshes unstructured rectangle (Delaunay Triangulation)
+    gmshrectangle(width, height, delta)
+	Meshes unstructured rectangle (Delaunay Triangulation).
+    Takes kwarg - tempname for naming the .geo file
 """
-function meshrectangle_unstructured(width, height, delta; tempname=tempname())
+function gmshrectangle(width, height, delta; tempname=tempname())
     s =
 		"""
 		lc = $delta;

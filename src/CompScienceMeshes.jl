@@ -20,8 +20,10 @@ export euclidianbasis, point
 
 # default mesh creation
 export mesh, readmesh, writemesh, meshgeo
-export meshsegment, meshrectangle, meshcircle, meshdisk, meshsphere, meshcuboid
-export tetmeshsphere, tetmeshcuboid
+export meshsegment, meshcircle
+export meshcuboid, meshcylinder, meshdisk, meshicosphere, meshmobius, meshrectangle, meshsphere 
+export gmshcuboid, gmshrectangle, gmshsphere
+export tetmeshsphere, tetmeshcuboid, tetgmshcuboid, meshball
 export subdMesh
 # mesh interface
 export dimension, universedimension, vertextype, coordtype
@@ -130,7 +132,7 @@ include("fileio/readmesh.jl")
 include("fileio/gmsh.jl")
 include("fileio/gmsh3d.jl")
 include("fileio/gid.jl")
-include("primitives.jl")
+include("primitives/primitives.jl")
 #include("../examples/waveguide_with_post.jl")
 include("baryref.jl")
 include("subdivision.jl")
