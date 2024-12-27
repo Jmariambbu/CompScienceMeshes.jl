@@ -7,8 +7,8 @@ using GmshTools
 returns Mesh(vertices, faces)
 
 Function calls kwarg - udim or universal dimension -
-    2 - is default, and returns a rectangle in a 2D space
-    3 - returns a rectangle with the 3D coordinate system at z = 0
+    2 - returns a rectangle in a 2D space
+    3 - is default, returns a rectangle with the 3D coordinate system at z = 0
 
 Function also calls a kwarg - generator - 
 :compsciencemeshes - is default, is pre-allocated with its vectors 
@@ -44,7 +44,7 @@ of the rectangle, if true
 
 Also see gmsh function - gmshrectangle.
 """
-function meshrectangle(len::F, breadth::F, edge_length::F; udim = 2, 
+function meshrectangle(len::F, breadth::F, edge_length::F; udim = 3, 
     boundary_only = false, generator = :compsciencemeshes) where F
     if generator == :gmsh
         msh = gmshrectangle(len, breadth, edge_length)

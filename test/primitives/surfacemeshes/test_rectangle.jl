@@ -2,7 +2,7 @@ using Test
 
 #Calling functions
 refrect = meshrectangle(1.0, 1.0, 0.5, generator = :gmsh);
-rect2 = meshrectangle(1.0, 1.0, 0.5);
+rect2 = meshrectangle(1.0, 1.0, 0.5, udim = 2);
 rect3 = meshrectangle(1.0, 1.0, 0.5, udim = 3);
 
 #Case: The function has a return
