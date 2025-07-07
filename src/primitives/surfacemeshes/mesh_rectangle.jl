@@ -84,11 +84,31 @@ end
 function mesh_rectangle_impl(a::F, b::F, h::F, udim) where F
     @assert udim == 2 || udim == 3 "Universal dimension can only be 2 or 3"
     #structured mesh:  isapprox(a%h, F(0)) && isapprox(b%h, F(0))
-    n = Int(round(a/h))  # number of elements along a
-    m = Int(round(b/h))  # number of elements along b
+    n_u = Int(ceil(a/h))  # number of elements along a
+    n_d = Int(floor(a/h))
+    m_u = Int(ceil(b/h))  # number of elements along b
+    m_d = Int(floor(b/h))
     
-    h_1 = F(a/n)
-    h_2 = F(b/m)
+    #determining edge lengths closest to given edge length
+    h_1u = F((a/n_u))
+    h_1d = F((a/n_d))
+    if abs(h_1u - h) < abs(h_1d - h)
+        h_1 = h_1u 
+        n = n_u
+    else
+        h_1 = h_1d
+        n = n_d
+    end
+
+    h_2u = F(b/m_u)
+    h_2d = F(b/m_d)
+    if abs(h_2u - h) < abs(h_2d - h)
+        h_2 = h_2u 
+        m = m_u
+    else
+        h_2 = h_2d
+        m = m_d
+    end
 
     nodes = zeros(SVector{udim, F}, (m + 1)*(n + 1))
     faces = Vector{SVector{3, Int64}}(undef, 2*m*n)
