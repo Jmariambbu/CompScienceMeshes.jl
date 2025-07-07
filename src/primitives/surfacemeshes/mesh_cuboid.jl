@@ -115,13 +115,43 @@ end
 
 function mesh_cuboid_impl(a::F, b::F, c::F, h::F) where F
     # if  isapprox(a%h, F(0)) && isapprox(b%h, F(0) && isapprox(c%h, F(0)))
-        n = Int(round(a/h))  # number of elements along a
-        m = Int(round(b/h))  # number of elements along b
-        p = Int(round(c/h))  #number of elements along c        
+        n_u = Int(ceil(a/h))  # number of elements along a
+        n_d = Int(floor(a/h))
+        m_u = Int(ceil(b/h))  # number of elements along b
+        m_d = Int(floor(b/h))
+        p_u = Int(ceil(c/h))  #number of elements along c
+        p_d = Int(floor(c/h))
 
-        h_1 = F(a/n)
-        h_2 = F(b/m)
-        h_3 = F(c/p)
+        #determining edge lengths closest to given edge length
+        h_1u = F((a/n_u))
+        h_1d = F((a/n_d))
+        if abs(h_1u - h) < abs(h_1d - h)
+            h_1 = h_1u 
+            n = n_u
+        else
+            h_1 = h_1d
+            n = n_d
+        end
+
+        h_2u = F(b/m_u)
+        h_2d = F(b/m_d)
+        if abs(h_2u - h) < abs(h_2d - h)
+            h_2 = h_2u 
+            m = m_u
+        else
+            h_2 = h_2d
+            m = m_d
+        end
+
+        h_3u = F(c/p_u)
+        h_3d = F(c/p_d)
+        if abs(h_3u - h) < abs(h_3d - h)
+            h_3 = h_3u 
+            p = p_u
+        else
+            h_3 = h_3d
+            p = p_d
+        end
 
         nodes = Vector{SVector{3, F}}(undef, 2*(m*n + m*p + n*p + 1))
         faces = Vector{SVector{3, Int64}}(undef, 4*m*n + 4*n*p + 4*m*p)

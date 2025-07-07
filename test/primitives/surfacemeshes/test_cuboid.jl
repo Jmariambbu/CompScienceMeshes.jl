@@ -2,7 +2,7 @@ using Test
 using CompScienceMeshes
 
 #Calling functions
-m_c = meshcuboid(1.0, 0.9, 1.1, 0.3);
+m_c = meshcuboid(1.0, 0.9, 0.8, 0.3);
 mc= meshcuboid(1.0, 1.0, 1.0, 0.1, generator = :gmsh);
 mcc = gmshcuboid(1.0, 1.0, 1.0, 0.1, physical = "OpenBox");
 

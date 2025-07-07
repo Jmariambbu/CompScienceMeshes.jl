@@ -3,7 +3,7 @@ using CompScienceMeshes
 #Calling functions
 refrect = meshrectangle(1.0, 1.0, 0.5, generator = :gmsh);
 rect2 = meshrectangle(1.0, 1.0, 0.5, 2);
-rect3 = meshrectangle(1.0, 0.9, 0.4, 3);
+rect3 = meshrectangle(1.1, 0.6, 0.4, 3);
 
 #Case: The function has a return
 @test typeof(refrect) != Nothing
