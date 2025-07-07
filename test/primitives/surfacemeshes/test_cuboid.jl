@@ -39,8 +39,3 @@ function euler(l, b, w, h)
 end
 
 @test euler(1.0, 1.0, 1.0, 0.01) == 2
-
-
-using Plotly
-
-Plotly.plot(CompScienceMeshes.wireframe(m_c))

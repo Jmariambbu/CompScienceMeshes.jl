@@ -28,8 +28,3 @@ end
 @test length(rect2.faces) != 0
 @test length(rect3.vertices) != 0
 @test length(rect3.faces) != 0
-
-
-using Plotly
-
-Plotly.plot(CompScienceMeshes.wireframe(rect3))

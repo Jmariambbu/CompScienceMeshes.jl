@@ -13,8 +13,3 @@ t = tetmeshcuboid(1.0, 1.0, 1.0, 0.5, generator = :gmsh);
 @test length(tt.faces) != 0
 @test length(t.vertices) != 0
 @test length(t.faces) != 0
-
-
-using Plotly
-
-Plotly.plot(CompScienceMeshes.wireframe(tt))
