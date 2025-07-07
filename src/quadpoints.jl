@@ -12,7 +12,7 @@ end
 
 function quadpoints(chart::ReferenceSimplex{2,T}, rule) where {T}
     u, w = trgauss(rule)
-    [(neighborhood(chart, T.(u[:,i])), T.(w[i])) for i in eachindex(w)]
+    [(neighborhood(chart, SVector{2,T}(u[:,i])), T.(w[i])) for i in eachindex(w)]
 end
 
 function quadpoints(chart::ReferenceSimplex{3,T}, rule) where {T}
@@ -52,7 +52,8 @@ PW = quadpoints(chart, rule)
 I = sum(pw[2]*f(pw[1]) for pw in PW)
 ```
 """
-function quadpoints(chart::Union{Simplex,subd_chart}, rule)
+# function quadpoints(chart::Union{Simplex,subd_chart}, rule)
+function quadpoints(chart, rule)
     PV = quadpoints(domain(chart), rule)
     map(PV) do pv
         q = neighborhood(chart, pv[1])

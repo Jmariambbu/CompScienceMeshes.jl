@@ -13,6 +13,7 @@ struct Simplex{U,D,C,N,T}
     volume::T
 end
 normal(t::Simplex{3,2,1,3,<:Number}) = t.normals[1]
+normal(t::Simplex{3,2,1,3,<:Number}, u) = t.normals[1] 
 dimtype(splx::Simplex{U,D}) where {U,D} = Val{D}
 """
     permute_simplex(simplex,permutation)
@@ -45,7 +46,7 @@ function flip_normal(t::Simplex{3,2,1,3,<:Number},sign::Int)
     end
 export flip_normal
 
-tangents(s::Simplex{3,2,1,3,<:Number},i) = s.tangents[i]
+# tangents(s::Simplex{3,2,1,3,<:Number},i) = s.tangents[i]
 """
     coordtype(simplex)
 
@@ -144,7 +145,7 @@ of vertices supplied minus one.
     end
 end
 
-simplex(vertices...) = simplex(SVector((vertices...,)))
+simplex(vertices::SVector{N,T}...) where {N,T<:Number} = simplex(SVector((vertices...,)))
 
 @generated function simplex(vertices, ::Type{Val{D}}) where D
     P = eltype(vertices)
@@ -164,6 +165,7 @@ function _normals(tangents, ::Type{Val{1}})
     D  = length(tangents)
     T  = eltype(PT)
 
+
     n = zeros(T,D+1)
     b = Array{T}(undef,D,D)
 
@@ -181,7 +183,7 @@ function _normals(tangents, ::Type{Val{1}})
     end
 
     n *= (-1)^D / norm(n)
-    normals = SVector{1,PT}([PT(n)])
+    normals = SVector{1,PT}(PT(n))
 
     metric = T[dot(tangents[i], tangents[j]) for i in 1:D, j in 1:D]
     volume = sqrt(abs(det(metric))) /  factorial(D)
@@ -189,6 +191,18 @@ function _normals(tangents, ::Type{Val{1}})
     return normals, volume
 
 end
+
+function _normals(tangents::SVector{1,SVector{2,T}}, ::Type{Val{1}}) where {T}
+
+    n = SVector{2,T}(-tangents[1][2], tangents[1][1])
+    l = norm(n)
+    # n = tangents[1] × tangents[2]
+    # l = norm(n)
+
+    P = SVector{2,T}
+    SVector{1,P}(n/l), l
+end
+
 
 function _normals(tangents::SVector{2,SVector{3,T}}, ::Type{Val{1}}) where {T}
 
@@ -199,8 +213,17 @@ function _normals(tangents::SVector{2,SVector{3,T}}, ::Type{Val{1}}) where {T}
     SVector{1,P}(n/l), 0.5*l
 end
 
+function _normals(tangents::SVector{2,SVector{2,T}}, ::Type{Val{0}}) where {T}
 
+    t = tangents[1]
+    s = tangents[2]
+    v = (t[1]*s[2] - t[2]*s[1])/2
+    # n[3] = tangents[1] × tangents[2]
+    # l = norm(n)
 
+    P = SVector{2,T}
+    SVector{0,P}(), v
+end
 
 function _normals(tangents, ::Type{Val{C}}) where C
     PT = eltype(tangents)
@@ -251,6 +274,8 @@ function barytocart(mani::Simplex, u)
     return r
 end
 
+function cartesian(ch::Simplex, u) barytocart(ch, u) end
+
 
 """
     carttobary(simplex, point) -> barycoords
@@ -286,20 +311,6 @@ function edges(s::Simplex{3,3})
     return Edges
 end
 
-# function edges(s::Simplex{3,3})
-#     C = [SVector{2}(c) for c in combinations(@SVector[1,2,3,4],2)]
-#     T = eltype(eltype(s.vertices))
-#     P = Simplex{3,1,2,2,T}
-#     Edges = Vector{P}(undef, length(C))
-#     for c in C
-#         q = relorientation(c, @SVector[1,2,3,4])
-#         Q = abs(q)
-#         Edges[Q] = q > 0 ?
-#             simplex(s.vertices[c[1]], s.vertices[c[2]]) :
-#             simplex(s.vertices[c[2]], s.vertices[c[1]])
-#     end
-#     return Edges
-# end
 
 function edges(s::Simplex{3,2})
     return [
@@ -308,7 +319,7 @@ function edges(s::Simplex{3,2})
         simplex(s.vertices[1], s.vertices[2])]
 end
 
-function faces(c)
+function faces(c::Simplex{3,2})
     @SVector[
         simplex(c[2], c[3]),
         simplex(c[3], c[1]),
@@ -323,6 +334,40 @@ function faces(c::CompScienceMeshes.Simplex{3,3,0,4,T}) where {T}
         simplex(c[1],c[4],c[2]),
         simplex(c[1],c[2],c[3])
     ]
+end
+
+function faces(ch::Simplex{3,2}, ::Type{Val{0}})
+    simplex.(ch.vertices)
+end
+
+function subcharts(c::Simplex{U,2}, ::Type{Val{1}}) where {U}
+    T = coordtype(c)
+    d = (
+        point(T, 1, 0),
+        point(T, 0, 1),
+        point(T, 0, 0),
+    )
+    tp = (
+        (simplex(c[2], c[3]), simplex(d[2], d[3])),
+        (simplex(c[3], c[1]), simplex(d[3], d[1])),
+        (simplex(c[1], c[2]), simplex(d[1], d[2])),
+    )
+    return tp
+end
+
+@testitem "subcharts" begin
+
+    ch = simplex(
+        point(2,0,-1),
+        point(0,3,-1),
+        point(0,0,-1))
+
+    fc = CompScienceMeshes.subcharts(ch, Val{1})
+    @test length(fc) == 3
+    @test volume(fc[1][1]) ≈ 3
+    @test volume(fc[2][1]) ≈ 2
+    @test volume(fc[3][1]) ≈ sqrt(13)
+
 end
 
 
@@ -340,38 +385,101 @@ struct ReferenceSimplex{D,T,N}
     # N: number of defining points
     # D: dimension of the simplex
     # T: type of the coordinates
-    simplex::Simplex{D,D,0,N,T}
+    # simplex::Simplex{D,D,0,N,T}
 end
 
-function ReferenceSimplex{D,T,N}() where {D,T,N}
-    P = SVector{D,T}[]
-    for i in 1:D
-        a = zeros(T,D)
-        a[i] = 1
-        p = SVector{D,T}(a)
-        push!(P,p)
-    end
+# function ReferenceSimplex{D,T,N}() where {D,T,N}
+#     P = SVector{D,T}[]
+#     for i in 1:D
+#         a = zeros(T,D)
+#         a[i] = 1
+#         p = SVector{D,T}(a)
+#         push!(P,p)
+#     end
 
-    o = zero(SVector{D,T})
-    push!(P,o)
-    ReferenceSimplex{D,T,N}(simplex(P...))
+#     o = zero(SVector{D,T})
+#     push!(P,o)
+#     ReferenceSimplex{D,T,N}(simplex(P...))
+# end
+
+function faces(c::ReferenceSimplex{2})
+    p = vertices(c)
+    return SVector(
+        simplex(p[2], p[3]),
+        simplex(p[3], p[1]),
+        simplex(p[1], p[2]))
 end
 
+function faces(ch::ReferenceSimplex{2}, ::Type{Val{0}})
+    simplex.(vertices(ch))
+end
 
-barytocart(ch::ReferenceSimplex, u) = barytocart(ch.simplex, u)
-carttobary(ch::ReferenceSimplex, p) = carttobary(ch.simplex, p)
+barytocart(ch::ReferenceSimplex, u) = u # barytocart(ch.simplex, u)
+carttobary(ch::ReferenceSimplex, p) = SVector{2}(p[1:2]) # carttobary(ch.simplex, p)
 
-domain(ch::Simplex{U,D,C,N,T}) where {U,D,C,T,N} = ReferenceSimplex{D,T,N}()
-neighborhood(ch::ReferenceSimplex, u) = u
+function domain(ch::Simplex{U,D,C,N,T}) where {U,D,C,T,N} ReferenceSimplex{D,T,N}() end
+function domain(ch::ReferenceSimplex) ch end
 
-"""
-    tangents(splx)
+neighborhood(ch::ReferenceSimplex, u) = SVector(u)
+neighborhood(ch::ReferenceSimplex, u::AbstractVector) = SVector{length(u)}(u)
 
-Returns a matrix whose columns are the tangents of the simplex `splx`.
-"""
-tangents(splx::Simplex) = hcat((splx.tangents)...)
+function vertices(ch::ReferenceSimplex{1,T}) where {T}
+    SVector(
+        point(T,1),
+        point(T,0),
+    )
+end
 
-vertices(splx::Simplex) = hcat((splx.vertices)...)
+function vertices(ch::ReferenceSimplex{2,T}) where {T}
+    SVector(
+        point(T,1,0),
+        point(T,0,1),
+        point(T,0,0))
+end
+
+function vertices(ch::ReferenceSimplex{3,T}) where {T}
+    SVector(
+        point(T,1,0,0),
+        point(T,0,1,0),
+        point(T,0,0,1),
+        point(T,0,0,0))
+end
+
+function permute_vertices(ch::ReferenceSimplex{1}, I)
+    V = vertices(ch)
+    return simplex(SVector(V[I[1]], V[I[2]]))
+end
+
+function permute_vertices(ch::ReferenceSimplex, I)
+    V = vertices(ch)
+    return simplex(SVector(V[I[1]], V[I[2]], V[I[3]]))
+end
+
+function permute_vertices(ch::ReferenceSimplex{3}, I)
+    V = vertices(ch)
+    return simplex(SVector(V[I[1]], V[I[2]], V[I[3]], V[I[4]]))
+end
+
+# points act as neighborhoods for the identity chart
+parametric(u) = u
+cartesian(u) = u
+jacobian(u) = one(eltype(u))
+function tangents(u::SVector{N}) where {N}
+    SMatrix{N,N}(LinearAlgebra.I)
+end
+tangents(u::SVector{N}, i::Int) where {N} = tangents(u)[:,i]
+
+
+# """
+#     tangents(splx)
+
+# Returns a matrix whose columns are the tangents of the simplex `splx`.
+# """
+# tangents(splx::Simplex) = hcat((splx.tangents)...)
+tangents(splx::Simplex, u) = hcat((splx.tangents)...)
+
+# vertices(splx::Simplex) = hcat((splx.vertices)...)
+function vertices(s::Simplex) s.vertices end
 
 """
     verticeslist(simplex)

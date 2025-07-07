@@ -39,6 +39,7 @@ include("test_isinclosure.jl")
 include("test_permute_vertices.jl")
 
 include("test_trgauss.jl")
+include("test_trdunavant.jl")
 include("test_chartquad.jl")
 include("test_spherequad.jl")
 include("test_nbd.jl")
@@ -51,4 +52,7 @@ include("primitives/surfacemeshes/test_icosphere.jl")
 include("primitives/surfacemeshes/test_rectangle.jl")
 include("primitives/surfacemeshes/test_sphere.jl")
 include("primitives/volumemeshes/test_cuboid.jl")
+
+using TestItemRunner
+@run_package_tests
 end

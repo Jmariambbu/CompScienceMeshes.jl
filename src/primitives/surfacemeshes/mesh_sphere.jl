@@ -1,5 +1,5 @@
 using StaticArrays
-using Delaunay
+# using Delaunay
 using GmshTools
 
 """
@@ -26,8 +26,9 @@ has precedence over delaunay.
 Also see function - gmshsphere.
 """
 function meshsphere(radius::F, h::F; 
-    delaunay =:(2D), generator=:compsciencemeshes) where F
+    delaunay =:(2D), generator=:gmsh) where F
     if generator == :compsciencemeshes
+        error("delaunay generator disabled waiting fix on Linux...")
         msh = mesh_sphere(radius, h; delaunay)
     elseif generator == :gmsh
         msh = gmshsphere(radius, h)
@@ -35,6 +36,10 @@ function meshsphere(radius::F, h::F;
         @error "generators are gmsh and compsciencemeshes only"
     end
     return msh
+end
+
+function meshsphere(;radius, h, delaunay=:(2D), generator=:gmsh)
+    meshsphere(radius, h; delaunay=delaunay, generator=generator)
 end
 
 # Function to generate a uniform spherical mesh
@@ -269,6 +274,7 @@ Ruled Surface(4)={4} In Sphere{1};
     fno = tempname * ".msh"
 
     gmsh.initialize()
+    gmsh.option.setNumber("General.Terminal", 0)
     gmsh.option.setNumber("Mesh.MshFileVersion",2)
     gmsh.open(fn)
     gmsh.model.mesh.generate(2)
