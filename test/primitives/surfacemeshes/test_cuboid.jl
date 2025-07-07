@@ -1,7 +1,8 @@
 using Test
 using CompScienceMeshes
+
 #Calling functions
-m_c = meshcuboid(1.0, 1.0, 1.0, 0.1);
+m_c = meshcuboid(1.0, 0.9, 1.1, 0.3);
 mc= meshcuboid(1.0, 1.0, 1.0, 0.1, generator = :gmsh);
 mcc = gmshcuboid(1.0, 1.0, 1.0, 0.1, physical = "OpenBox");
 
@@ -38,3 +39,8 @@ function euler(l, b, w, h)
 end
 
 @test euler(1.0, 1.0, 1.0, 0.01) == 2
+
+
+using Plotly
+
+Plotly.plot(CompScienceMeshes.wireframe(m_c))

@@ -3,7 +3,7 @@ using CompScienceMeshes
 #Calling functions
 refrect = meshrectangle(1.0, 1.0, 0.5, generator = :gmsh);
 rect2 = meshrectangle(1.0, 1.0, 0.5, 2);
-rect3 = meshrectangle(1.0, 1.0, 0.5, 3);
+rect3 = meshrectangle(1.0, 0.9, 0.4, 3);
 
 #Case: The function has a return
 @test typeof(refrect) != Nothing
@@ -28,3 +28,8 @@ end
 @test length(rect2.faces) != 0
 @test length(rect3.vertices) != 0
 @test length(rect3.faces) != 0
+
+
+using Plotly
+
+Plotly.plot(CompScienceMeshes.wireframe(rect3))
