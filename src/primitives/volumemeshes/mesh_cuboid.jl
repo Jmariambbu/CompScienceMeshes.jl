@@ -8,8 +8,8 @@ returns Mesh(vertices, faces)
 Function returns a simplicial volumetric mesh of a cuboid. It takes kwarg - 
 generator 
 :compsciencemeshes - is default, and gives a structured tetrahedral mesh of 
-    a cuboid, the dimensions of the cuboid are approximated by multiples 
-    of edge length -
+    a cuboid, the edge lengths are approximated to fit the dimensions
+    of the geometry -
 
     there are 24 tetrahedrons in each unit cube - 4 on each facet - 
     and there are n*m*p unit cubes in each cuboid, where n, m, p are number of
@@ -22,8 +22,8 @@ Also see the gmsh function - tetgmshcuboid.
 function tetmeshcuboid(len::F, breadth::F, width::F, edge_len::F; 
     generator = :compsciencemeshes) where F
     if generator == :compsciencemeshes
-        # @info "Generating a structured mesh: The dimensions of the cuboid are 
-        #     approximated by multiples of edge length.
+        # @info "Generating a structured mesh: The edge lengths are 
+        #     approximated to fit the dimensions of the geometry.
         #     For exact dimensions/ unstructured grid, use kwarg - generator = :gmsh"
         msh = tetmesh_cuboid(len, breadth, width, edge_len)
     elseif generator == :gmsh
@@ -35,8 +35,8 @@ function tetmeshcuboid(len::F, breadth::F, width::F, edge_len::F;
 end
 
 @generated function tetmesh_cuboid(a, b, c, h)
-    Core.println("Generating a structured mesh: The dimensions of the cuboid are 
-            approximated by multiples of edge length. For exact dimensions and
+    Core.println("Generating a structured mesh: The edge lengths are 
+            approximated to fit the dimensions of the geometry. For exact dimensions and
             unstructured grids, use kwarg - generator = :gmsh")
     return :(tetmesh_cuboid_impl(a, b, c, h))
 end
@@ -45,6 +45,10 @@ function tetmesh_cuboid_impl(a::F, b::F, c::F, h::F) where F
     n = Int(round(a/h)) #number of elements along x
     m = Int(round(b/h)) #number of elements along y
     p = Int(round(c/h)) #number of elements along z
+
+    h_1 = F(a/n)
+    h_2 = F(b/m)
+    h_3 = F(c/p)
 
     #total number of vertices becomes (m + 1) along each edge in y direction 
         #and along each plane in z direction
@@ -69,9 +73,9 @@ function tetmesh_cuboid_impl(a::F, b::F, c::F, h::F) where F
                          + (iy) 
                          + (iz - 1)*(m + 1)*(n + 1))
                 vertices[ver_mem1] = SVector(
-                    (ix - 1)*h, 
-                    (iy - 1)*h, 
-                    (iz - 1)*h
+                    (ix - 1)*h_1, 
+                    (iy - 1)*h_2, 
+                    (iz - 1)*h_3
                     ) 
                 #centers on the surfaces of unit cubes
                 #they are ordered from front to back, bottom to top, left to right 
@@ -81,9 +85,9 @@ function tetmesh_cuboid_impl(a::F, b::F, c::F, h::F) where F
                               + (ix - 1)*m 
                               + (iz - 1)*m*n)
                     vertices[ver_mem21] = SVector(
-                        (ix - 0.5)*h, 
-                        (iy - 0.5)*h, 
-                        (iz - 1)*h
+                        (ix - 0.5)*h_1, 
+                        (iy - 0.5)*h_2, 
+                        (iz - 1)*h_3
                         )
                 end
                 if (ix != (n + 1))&&(iz != (p + 1))
@@ -92,9 +96,9 @@ function tetmesh_cuboid_impl(a::F, b::F, c::F, h::F) where F
                               + (ix - 1)*p 
                               + (iy - 1)*n*p)
                     vertices[ver_mem22] = SVector(
-                        (ix - 0.5)*h, 
-                        (iy - 1)*h, 
-                        (iz - 0.5)*h
+                        (ix - 0.5)*h_1, 
+                        (iy - 1)*h_2, 
+                        (iz - 0.5)*h_3
                         )
                 end
                 if (iy != (m + 1))&&(iz != (p + 1))
@@ -103,9 +107,9 @@ function tetmesh_cuboid_impl(a::F, b::F, c::F, h::F) where F
                               + (iz - 1)*m 
                               + (ix - 1)*m*p)
                     vertices[ver_mem23] = SVector(
-                        (ix - 1)*h, 
-                        (iy - 0.5)*h, 
-                        (iz - 0.5)*h
+                        (ix - 1)*h_1, 
+                        (iy - 0.5)*h_2, 
+                        (iz - 0.5)*h_3
                         )
                 end
 
@@ -116,9 +120,9 @@ function tetmesh_cuboid_impl(a::F, b::F, c::F, h::F) where F
                              + iy 
                              + (iz - 1)*m*n)
                     vertices[ver_mem3] = SVector(
-                        (ix - 0.5)*h, 
-                        (iy - 0.5)*h, 
-                        (iz - 0.5)*h
+                        (ix - 0.5)*h_1, 
+                        (iy - 0.5)*h_2, 
+                        (iz - 0.5)*h_3
                         )
 
                     #faces on each unit cube
